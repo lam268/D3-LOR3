@@ -1,8 +1,5 @@
 # D3-LOR3
 This visualisation depicts the interactions among characters in The Lord of the Rings: The Return of The King movie.
-# Foobar
-
-Foobar is a Python library for dealing with word pluralization.
 
 ## Installation
 

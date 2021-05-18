@@ -21,5 +21,5 @@ You can also use the standalone D3 microlibraries. For example, d3-selection:
 
 Run chrome using this command to pass Chrome cors policy
 ```bash
-chrome.exe --disable-web-security
+chrome.exe --user-data-dir="C:/Chrome dev session" --disable-web-security
 ```

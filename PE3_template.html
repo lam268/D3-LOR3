@@ -159,16 +159,19 @@
       .attr("id", "tooltip-text")
       .style("opacity", 0);
 
-    d3.json("LOTR_3.json", function (error, graph) {
+    // import data from dataPath  
+    d3.json(dataPath, function (error, graph) {
       if (error) throw error;
 
+      // create link between nodes
       var link = svg.append("g")
         .attr("class", "links")
         .selectAll("line")
         .data(graph.links)
         .enter().append("line")
-        .attr("stroke-width", function (d) { return Math.sqrt(d.weight); });
+        .attr("stroke-width", function (d) { return d.weight; });
 
+      // create graph nodes
       var node = svg.append("g")
         .attr("class", "nodes")
         .selectAll("g")
@@ -176,7 +179,13 @@
         .enter().append("g")
       
       
+      var Gandalf = d3.selectAll(link).filter(function(d) {
+        return d.data; 
+      })
 
+      console.log(Gandalf);
+
+      // import node into graph with circle style 
       var circles = node.append("circle")
         .attr("r", 5)
         .attr("fill", function (d) { return color(d.name); })
@@ -185,6 +194,7 @@
           .on("drag", dragged)
           .on("end", dragended));
 
+      // lable node with name using text style
       var lables = node.append("text")
         .text(function (d) {
           return d.name;

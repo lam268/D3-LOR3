@@ -156,31 +156,34 @@
 
     var tooltip = d3.select("body")
       .append("div")
-      .attr("class", "tooltip-container")
+      .attr("class", "tooltip")
       .style("opacity", 0);
+
 
     // import data from dataPath  
     d3.json(dataPath, function (error, graph) {
       if (error) throw error;
 
       // create link between nodes
-      var link = svg.append("g")
+      var link = svg.append("g") // what is the g element?
         .attr("class", "links")
         .selectAll("line")
         .data(graph.links)
         .enter().append("line")
-        .attr("stroke-width", function (d) { return d.weight; })
-        .attr("class", "normal-link")
+        .attr("stroke-width", function (d) { return d.weight; });
 
       link
-        .attr('class', 'link')
+        .on('mouseover', function (d) {
+          console.log(this)
+          d3.select(this).style("class","hover-link")
+        })
         .on('mouseover.tooltip', function (d) {
           tooltip.transition()
             .duration(300)
             .style("opacity", .8);
           tooltip.html(d.from +
             " interacted with " + d.to +
-            " " + d.weight + " times")
+            d.weight + " times")
             .style("left", (d3.event.pageX) + "px")
             .style("top", (d3.event.pageY + 10) + "px");
         })
@@ -189,11 +192,12 @@
             .duration(100)
             .style("opacity", 0);
         })
+        .on('mouseout.fade', fade(1))
         .on("mousemove", function () {
           tooltip.style("left", (d3.event.pageX) + "px")
             .style("top", (d3.event.pageY + 10) + "px");
         });
-
+      ;
       // create graph nodes
       var node = svg.append("g")
         .attr("class", "nodes")
@@ -205,6 +209,25 @@
       node.append('circle')
         .attr('r', 5)
         .attr("fill", function (d) { return color(d.name); })
+        .on('mouseover.tooltip', function (d) {
+          tooltip.transition()
+            .duration(300)
+            .style("opacity", .8);
+          tooltip.html("Id:" + d.id + "<p>Name:" + d.name)
+            .style("left", (d3.event.pageX) + "px")
+            .style("top", (d3.event.pageY + 10) + "px");
+        })
+        .on('mouseover.fade', fade(0.1))
+        .on("mouseout.tooltip", function () {
+          tooltip.transition()
+            .duration(100)
+            .style("opacity", 0);
+        })
+        .on('mouseout.fade', fade(1))
+        .on("mousemove", function () {
+          tooltip.style("left", (d3.event.pageX) + "px")
+            .style("top", (d3.event.pageY + 10) + "px");
+        })
         .on('dblclick', releasenode)
         .call(d3.drag()
           .on("start", dragstarted)

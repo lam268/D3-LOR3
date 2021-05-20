@@ -154,9 +154,9 @@
 
     var color = d3.scaleOrdinal(d3.schemeCategory20);
 
-    var tooltip = d3.select("id", "tooltip-container")
+    var tooltip = d3.select("body")
       .append("div")
-      .attr("id", "tooltip-text")
+      .attr("class", "tooltip-container")
       .style("opacity", 0);
 
     // import data from dataPath  
@@ -169,7 +169,30 @@
         .selectAll("line")
         .data(graph.links)
         .enter().append("line")
-        .attr("stroke-width", function (d) { return d.weight; });
+        .attr("stroke-width", function (d) { return d.weight; })
+        .attr("class", "normal-link")
+
+      link
+        .attr('class', 'link')
+        .on('mouseover.tooltip', function (d) {
+          tooltip.transition()
+            .duration(300)
+            .style("opacity", .8);
+          tooltip.html(d.from +
+            " interacted with " + d.to +
+            " " + d.weight + " times")
+            .style("left", (d3.event.pageX) + "px")
+            .style("top", (d3.event.pageY + 10) + "px");
+        })
+        .on("mouseout.tooltip", function () {
+          tooltip.transition()
+            .duration(100)
+            .style("opacity", 0);
+        })
+        .on("mousemove", function () {
+          tooltip.style("left", (d3.event.pageX) + "px")
+            .style("top", (d3.event.pageY + 10) + "px");
+        });
 
       // create graph nodes
       var node = svg.append("g")
@@ -177,18 +200,12 @@
         .selectAll("g")
         .data(graph.nodes)
         .enter().append("g")
-      
-      
-      var Gandalf = d3.selectAll(link).filter(function(d) {
-        return d.data; 
-      })
-
-      console.log(Gandalf);
 
       // import node into graph with circle style 
-      var circles = node.append("circle")
-        .attr("r", 5)
+      node.append('circle')
+        .attr('r', 5)
         .attr("fill", function (d) { return color(d.name); })
+        .on('dblclick', releasenode)
         .call(d3.drag()
           .on("start", dragstarted)
           .on("drag", dragged)
@@ -199,11 +216,10 @@
         .text(function (d) {
           return d.name;
         })
+        .attr("class", "normal-text")
         .attr('x', 6)
         .attr('y', 3);
 
-      node.append("title")
-        .text(function (d) { return d.name; });
 
       simulation
         .nodes(graph.nodes)
@@ -225,22 +241,31 @@
           })
       }
 
-      function colorNode(name) {
-        //iterate through all the dom and get the DOM which has the data
-        var node = d3.selectAll(".node")[0].filter(function (d) {
-          return d3.select(d).data()[0].name == name;
-        });
-        //for the matching node DOM set the fill to be red
-        d3.selectAll(node).style("fill", "highlight-text");
+      function fade(opacity) {
+        return d => {
+          node.style('stroke-opacity', function (o) {
+            const thisOpacity = isConnected(d, o) ? 1 : opacity;
+            this.setAttribute('fill-opacity', thisOpacity);
+            return thisOpacity;
+          });
+
+          link.style('stroke-opacity', o => (o.source === d || o.target === d ? 1 : opacity));
+
+        };
       }
 
-      function colorLink(src, tgt) {
-        //iterate through all the links for src and target.
-        var link = d3.selectAll(".link")[0].filter(function (d) {
-          return (d3.select(d).data()[0][0].name == src && d3.select(d).data()[0][2].name == tgt);
-        });
-        //for the filtered link make the stroke red.
-        d3.selectAll(link).style("stroke", "highlight-link");
+      function releasenode(d) {
+        d.fx = null;
+        d.fy = null;
+      }
+
+      const linkedByIndex = {};
+      graph.links.forEach(d => {
+        linkedByIndex[`${d.source.index},${d.target.index}`] = 1;
+      });
+
+      function isConnected(a, b) {
+        return linkedByIndex[`${a.index},${b.index}`] || linkedByIndex[`${b.index},${a.index}`] || a.index === b.index;
       }
     });
     function dragstarted(d) {
